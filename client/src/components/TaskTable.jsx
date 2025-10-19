@@ -1,4 +1,3 @@
-// components/TaskTable.jsx
 import React from 'react';
 
 export default function TaskTable({ tasks }) {
