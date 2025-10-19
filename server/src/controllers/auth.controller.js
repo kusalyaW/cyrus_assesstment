@@ -3,14 +3,15 @@ import { pool } from '../db.js';
 
 export async function register(req, res, next) {
   try {
-    const { name, email, password } = req.body;
+    const { name, email, password,role } = req.body;
+    const userRole = role && role === 'ADMIN' ? 'ADMIN' : 'USER';
     if (!email || !password || !name) return res.status(400).json({ message: 'Missing fields' });
 
     const [rows] = await pool.query('SELECT id FROM users WHERE email=?', [email]);
     if (rows.length) return res.status(409).json({ message: 'This email already exists' });
 
     const hashed = await bcrypt.hash(password, 10);
-    await pool.query('INSERT INTO users (name,email,password_hash) VALUES (?,?,?)', [name, email, hashed]);
+    await pool.query('INSERT INTO users (name,email,password_hash,role) VALUES (?,?,?,?)', [name, email, hashed,userRole]);
 
     res.status(201).json({ message: 'Your account is registered successfully' });
   } catch (e) { next(e); }

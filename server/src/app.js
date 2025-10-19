@@ -7,7 +7,7 @@ import { config } from './config.js';
 import { pool } from './db.js';
 import authRoutes from './routes/auth.routes.js';
 import taskRoutes from './routes/task.routes.js';
-
+import userRoutes from './routes/user.routes.js';
 import { errorHandler } from './middleware/error.js';
 
 const MySQLSessionStore = MySQLStore(session);
@@ -18,7 +18,7 @@ app.use(cors({ origin: config.clientOrigin, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-
+console.log(config.sessionSecret)
 app.use(session({
   key: 'sid',
   secret: config.sessionSecret,
@@ -30,6 +30,7 @@ app.use(session({
 
 app.use('/api/auth', authRoutes);
 app.use('/api/tasks', taskRoutes);
+app.use('/api/users', userRoutes);
 
 
 app.use(errorHandler);
