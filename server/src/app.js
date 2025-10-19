@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import { config } from './config.js';
 import { pool } from './db.js';
 import authRoutes from './routes/auth.routes.js';
+import taskRoutes from './routes/task.routes.js';
 
 import { errorHandler } from './middleware/error.js';
 
@@ -28,6 +29,7 @@ app.use(session({
 }));
 
 app.use('/api/auth', authRoutes);
+app.use('/api/tasks', taskRoutes);
 
 
 app.use(errorHandler);
