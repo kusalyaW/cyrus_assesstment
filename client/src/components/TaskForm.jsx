@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';   // 👈 import this
+import { useNavigate } from 'react-router-dom';   
 import { createTask, api } from '../api/client';
 
 export default function TaskForm({ onCreated }) {
-  const navigate = useNavigate(); // 👈 for redirect
+  const navigate = useNavigate(); 
   const [form, setForm] = useState({
     title: '',
     description: '',
@@ -34,7 +34,7 @@ export default function TaskForm({ onCreated }) {
         description: '',
         status: 'PENDING',
         assignee_id: '',
-        due_date: '',
+        due_date: form.due_date || null,
         file: null,
       });
 
@@ -89,14 +89,6 @@ export default function TaskForm({ onCreated }) {
         type="date"
         value={form.due_date}
         onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
-      />
-
-      <label>Attachment (optional)</label>
-      <input
-        type="file"
-        onChange={(e) =>
-          setForm((f) => ({ ...f, file: e.target.files[0] || null }))
-        }
       />
 
       <button

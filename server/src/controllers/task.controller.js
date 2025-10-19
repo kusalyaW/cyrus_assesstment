@@ -2,15 +2,16 @@ import { pool } from '../db.js';
 
 export async function createTask(req, res, next) {
   try {
-    const { title, description, status, assigneeId, dueDate } = req.body;
+    const { title, description, status, assignee_id, due_date } = req.body;
     const [result] = await pool.query(
       `INSERT INTO tasks (title, description, status, assignee_id, due_date, created_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description || null, status || 'PENDING', req.session.user.id || null, dueDate || null, req.session.user.id]
+      [title, description || null, status || 'PENDING', req.session.user.id || null, due_date || null, req.session.user.id]
     );
     const [task] = await pool.query('SELECT * FROM tasks WHERE id=?', [result.insertId]);
     res.status(201).json(task[0]);
   } catch (e) { next(e); }
+  console.log('Incoming task body:', req.body);
 }
 
 export async function listTasks(req, res, next) {

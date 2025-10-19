@@ -7,7 +7,7 @@ export default function App() {
   const { user, ready, logout } = useAuth();
 
   if (!ready) return <p>Loading session…</p>;
-  if (!user) return <p>Unauthorized</p>; // router should normally handle this
+  if (!user) return <p>Unauthorized</p>;
 
   return (
     <div className="app">
