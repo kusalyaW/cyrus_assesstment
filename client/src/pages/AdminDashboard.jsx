@@ -15,7 +15,7 @@ export default function AdminDashboard() {
       <ul>
         {tasks.map((t) => (
           <li key={t.id}>
-            <strong>{t.title}</strong> – {t.status} – Created by {t.created_by}
+            <strong>{t.title}</strong> – {t.status} – Created by {t.creator_name}
           </li>
         ))}
       </ul>
