@@ -33,8 +33,9 @@ export async function listTasks(req, res, next) {
 
     const [countRows] = await pool.query(`SELECT COUNT(*) as total FROM tasks ${whereSql}`, values);
     const [rows] = await pool.query(
-      `SELECT t.*, u.name AS assignee_name
+      `SELECT t.*, u.name AS assignee_name, c.name AS creator_name
        FROM tasks t LEFT JOIN users u ON t.assignee_id=u.id
+       LEFT JOIN users c ON t.created_by=c.id
        ${whereSql} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
       [...values, parseInt(pageSize), parseInt(offset)]
     );
