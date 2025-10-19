@@ -1,0 +1,16 @@
+:root { font-family: system-ui, sans-serif; }
+.container { max-width: 900px; margin: 24px auto; padding: 0 16px; }
+header { display:flex; align-items:center; justify-content:space-between; }
+.center { max-width: 400px; margin: 64px auto; display:flex; flex-direction:column; gap:12px; }
+form { display:flex; flex-direction:column; gap:8px; }
+input, textarea, select, button { padding:8px 10px; }
+.btn, button { cursor:pointer; }
+.error { color:crimson; }
+.grid { display:grid; grid-template-columns: repeat(4, 1fr); gap:12px; }
+.card { border:1px solid #ddd; padding:12px; border-radius:8px; }
+.table { width:100%; border-collapse: collapse; margin-top: 12px; }
+.table th, .table td { border:1px solid #eee; padding:8px; }
+.filters { display:flex; gap:8px; margin:12px 0; }
+.pager { display:flex; gap:12px; align-items:center; margin-top:12px; }
+.danger { background:#ffd6d6; }
+@media (max-width: 700px) { .grid { grid-template-columns: repeat(2, 1fr); } }
