@@ -5,6 +5,8 @@ import AuthProvider, { useAuth } from './context/AuthContext.jsx';
 import App from './App.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import TaskForm from './components/TaskForm.jsx'; 
+import TaskEditPage from './pages/TaskEditPage';
 
 function PrivateRoute({ children }) {
   const { user, ready } = useAuth();
@@ -21,8 +23,9 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/dashboard/new" element={<TaskForm />} />
+          <Route path="/dashboard/edit/:id" element={<TaskEditPage />} />
 
-          
           <Route
             path="/"
             element={

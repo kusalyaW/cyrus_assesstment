@@ -14,3 +14,21 @@ export async function api(path, { method='GET', body, files } = {}) {
   if (!res.ok) throw new Error((await res.json()).message || res.statusText);
   return res.json().catch(() => ({}));
 }
+
+export const fetchTasks = async (query = '') => {
+  const data = await api(`/tasks${query}`);
+  return data.data || [];
+};
+
+export const createTask = async (task) => {
+  return await api('/tasks', { method: 'POST', body: task });
+};
+
+export const updateTask = async (id, updates) => {
+  return await api(`/tasks/${id}`, { method: 'PATCH', body: updates });
+};
+
+export const deleteTask = async (id) => {
+  return await api(`/tasks/${id}`, { method: 'DELETE' });
+};
+
