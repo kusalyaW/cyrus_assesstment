@@ -7,7 +7,7 @@ export default function UserDashboard() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // fetch tasks for this user
+  
   async function loadTasks() {
     try {
       const res = await fetch('/api/tasks', { credentials: 'include' });
@@ -24,7 +24,7 @@ export default function UserDashboard() {
     loadTasks();
   }, []);
 
-  // delete a task
+  
   async function deleteTask(id) {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
     try {
@@ -32,7 +32,7 @@ export default function UserDashboard() {
         method: 'DELETE',
         credentials: 'include',
       });
-      // reload tasks after deletion
+      
       loadTasks();
     } catch (err) {
       alert('Failed to delete task');
@@ -44,7 +44,7 @@ export default function UserDashboard() {
 
   return (
     <div style={{ padding: '20px' }}>
-      {/* header and add button */}
+      
       <div
         style={{
           display: 'flex',
@@ -68,10 +68,10 @@ export default function UserDashboard() {
         </button>
       </div>
 
-      {/* live progress stats */}
+      
       <StatCards tasks={tasks} />
 
-      {/* task list */}
+      
       <ul style={{ marginTop: 20, listStyle: 'none', padding: 0 }}>
         {tasks.length === 0 ? (
           <p>No tasks found.</p>
