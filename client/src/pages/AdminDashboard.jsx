@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatCards from '../components/StatCards';
-import TaskTable from '../components/TaskTable'; // reuse!
+import TaskTable from '../components/TaskTable';
 
 export default function AdminDashboard() {
   const [tasks, setTasks] = useState([]);
@@ -43,13 +43,13 @@ export default function AdminDashboard() {
         </button>
       </div>
 
-      {/* Overview Cards */}
+      
       <StatCards tasks={tasks} />
 
-      {/* Task Table */}
+      
       <TaskTable
         tasks={tasks}
-        showActions={false} // admin just monitors
+        showActions={false} 
       />
     </div>
   );
