@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import StatCards from '../components/StatCards';
 import TaskTable from '../components/TaskTable';
+import { fetchTasks, deleteTask as deleteTaskApi } from '../api/client';
 
 export default function UserDashboard() {
   const [tasks, setTasks] = useState([]);
@@ -10,9 +11,8 @@ export default function UserDashboard() {
 
   async function loadTasks() {
     try {
-      const res = await fetch('/api/tasks', { credentials: 'include' });
-      const data = await res.json();
-      setTasks(data.data || []);
+      const data = await fetchTasks();
+      setTasks(data || []);
     } catch (err) {
       console.error('Failed to fetch tasks:', err);
     } finally {
@@ -20,10 +20,14 @@ export default function UserDashboard() {
     }
   }
 
-  async function deleteTask(id) {
+  async function handleDeleteTask(id) {
     if (!window.confirm('Are you sure you want to delete this task?')) return;
-    await fetch(`/api/tasks/${id}`, { method: 'DELETE', credentials: 'include' });
-    loadTasks();
+    try {
+      await deleteTaskApi(id);
+      loadTasks();
+    } catch (err) {
+      console.error('Failed to delete task:', err);
+    }
   }
 
   useEffect(() => { loadTasks(); }, []);
@@ -55,7 +59,7 @@ export default function UserDashboard() {
         tasks={tasks}
         showActions={true}
         onEdit={(t) => navigate(`/dashboard/edit/${t.id}`)}
-        onDelete={deleteTask}
+        onDelete={handleDeleteTask}
       />
     </div>
   );

@@ -9,6 +9,7 @@ import TaskForm from './components/TaskForm.jsx';
 import TaskEditPage from './pages/TaskEditPage';
 import UserListPage from './pages/UserListPage.jsx';
 import UserEditPage from './pages/UserEditPage.jsx';
+import OAuthCallback from './pages/OAuthCallback.jsx';
 
 function PrivateRoute({ children }) {
   const { user, ready } = useAuth();
@@ -25,6 +26,7 @@ ReactDOM.createRoot(document.getElementById('root')).render(
           
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
+          <Route path="/auth/callback" element={<OAuthCallback />} />
           <Route path="/dashboard/new" element={<TaskForm />} />
           <Route path="/dashboard/edit/:id" element={<TaskEditPage />} />
           <Route path="/admin/users" element={<UserListPage />} />

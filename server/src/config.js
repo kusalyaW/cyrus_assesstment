@@ -10,5 +10,12 @@ export const config = {
     database: process.env.DB_NAME
   },
   sessionSecret: process.env.SESSION_SECRET,
-  clientOrigin: process.env.CLIENT_ORIGIN
+  jwtSecret: process.env.JWT_SECRET || 'your-secret-key-change-this-in-production',
+  jwtExpiresIn: process.env.JWT_EXPIRES_IN || '7d',
+  clientOrigin: process.env.CLIENT_ORIGIN,
+  google: {
+    clientID: process.env.GOOGLE_CLIENT_ID,
+    clientSecret: process.env.GOOGLE_CLIENT_SECRET,
+    callbackURL: process.env.GOOGLE_CALLBACK_URL || 'http://localhost:3000/api/auth/google/callback'
+  }
 };

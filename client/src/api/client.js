@@ -1,7 +1,26 @@
 const API = import.meta.env.VITE_API_BASE || 'http://localhost:3000/api';
 
+// Get token from localStorage
+const getToken = () => localStorage.getItem('token');
+
+// Set token in localStorage
+export const setToken = (token) => {
+  if (token) {
+    localStorage.setItem('token', token);
+  } else {
+    localStorage.removeItem('token');
+  }
+};
+
 export async function api(path, { method='GET', body, files } = {}) {
   const opts = { method, credentials: 'include', headers: {} };
+  
+  // Add Authorization header with JWT token
+  const token = getToken();
+  if (token) {
+    opts.headers['Authorization'] = `Bearer ${token}`;
+  }
+  
   if (files) {
     const form = new FormData();
     for (const [k,v] of Object.entries(files)) form.append(k,v);

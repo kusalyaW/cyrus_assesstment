@@ -6,7 +6,7 @@ export async function createTask(req, res, next) {
     const [result] = await pool.query(
       `INSERT INTO tasks (title, description, status, assignee_id, due_date, created_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description || null, status || 'PENDING', req.session.user.id || null, due_date || null, req.session.user.id]
+      [title, description || null, status || 'PENDING', req.user.id || null, due_date || null, req.user.id]
     );
     const [task] = await pool.query('SELECT * FROM tasks WHERE id=?', [result.insertId]);
     res.status(201).json(task[0]);
@@ -16,8 +16,8 @@ export async function createTask(req, res, next) {
 
 export async function listTasks(req, res, next) {
   try {
-    const userId = req.session.user.id;
-    const userRole = req.session.user.role;
+    const userId = req.user.id;
+    const userRole = req.user.role;
 
 
     const { status, q, page = 1, pageSize = 10 } = req.query;
@@ -47,8 +47,8 @@ export async function listTasks(req, res, next) {
 export async function updateTask(req, res, next) {
   try {
     const id = req.params.id;
-    const userId = req.session.user.id;
-    const userRole = req.session.user.role;
+    const userId = req.user.id;
+    const userRole = req.user.role;
     const [rows] = await pool.query('SELECT * FROM tasks WHERE id=?', [id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Task not found' });
     const task = rows[0]; 
@@ -74,8 +74,8 @@ export async function updateTask(req, res, next) {
 export async function deleteTask(req, res, next) {
   try {
     const id = req.params.id;
-    const userId = req.session.user.id;
-    const userRole = req.session.user.role;
+    const userId = req.user.id;
+    const userRole = req.user.role;
     const [rows] = await pool.query('SELECT * FROM tasks WHERE id=?', [id]);
     if (rows.length === 0) return res.status(404).json({ message: 'Task not found' });
     const task = rows[0];
@@ -88,8 +88,8 @@ export async function deleteTask(req, res, next) {
 
 export async function getTask(req, res, next) {
   try {
-    const userId = req.session.user.id;
-    const userRole = req.session.user.role;
+    const userId = req.user.id;
+    const userRole = req.user.role;
 
     let query, params;
     if (userRole === 'ADMIN') {
