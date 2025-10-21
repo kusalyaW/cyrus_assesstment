@@ -10,7 +10,17 @@ export default function Register() {
 
   const submit = async e => {
     e.preventDefault();
-    try { await register(form.name, form.email, form.password); nav('/'); }
+    
+    // Validate email contains "@gmail"
+    if (!form.email.toLowerCase().includes('@gmail')) {
+      setErr('Email must be a Gmail address');
+      return;
+    }
+    
+    try { 
+      await register(form.name, form.email, form.password); 
+      nav('/login');
+    }
     catch (e) { setErr(e.message); }
   };
 

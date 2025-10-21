@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useState } from 'react';
-import { api } from '../api/client';
+import { api, setToken } from '../api/client';
 
 const AuthCtx = createContext(null);
 
@@ -9,13 +9,22 @@ export default function AuthProvider({ children }) {
 
   
   useEffect(() => {
-    api('/auth/me')
-      .then((d) => {
-        const u = d.user || d;  
-        if (u && u.id) setUser(u);
-      })
-      .catch(() => {})
-      .finally(() => setReady(true));
+    // Check if user is already logged in (token exists)
+    const token = localStorage.getItem('token');
+    if (token) {
+      api('/auth/me')
+        .then((d) => {
+          const u = d.user || d;  
+          if (u && u.id) setUser(u);
+        })
+        .catch(() => {
+          // Token is invalid, remove it
+          setToken(null);
+        })
+        .finally(() => setReady(true));
+    } else {
+      setReady(true);
+    }
   }, []);
 
   const login = async (email, password) => {
@@ -27,21 +36,27 @@ export default function AuthProvider({ children }) {
     const u = data.user || data;
     console.log('Login response:', u);
     if (!u || !u.id) throw new Error('Invalid response from server');
+    
+    // Store the JWT token
+    if (data.token) {
+      setToken(data.token);
+    }
+    
     setUser(u);
   };
 
   const logout = async () => {
     await api('/auth/logout', { method: 'POST' });
+    setToken(null); // Remove token from localStorage
     setUser(null);
   };
 
   const register = async (name, email, password) => {
-    const data = await api('/auth/register', {
+    await api('/auth/register', {
       method: 'POST',
       body: { name, email, password },
     });
-    const u = data.user || data;
-    setUser(u);
+    // Don't set user - let them login after registration
   };
 
   return (

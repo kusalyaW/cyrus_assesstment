@@ -2,13 +2,13 @@ import { pool } from '../db.js';
 
 export async function listUsers(_req, res, next) {
   try {
-    if (!_req.session.user || _req.session.user.role !== 'ADMIN') {
+    if (!_req.user || _req.user.role !== 'ADMIN') {
       return res.status(403).json({ message: 'Forbidden' });
     }
     const [rows] = await pool.query('SELECT id,name,email,role,created_at FROM users');
     res.json({data:rows});
   } catch (e) { next(e); }
-  console.log('Session user:', _req.session.user);
+  console.log('User:', _req.user);
 }
 
 export async function getUser(req, res, next) {
