@@ -23,22 +23,17 @@ export default function TaskForm({ onCreated }) {
   async function submit(e) {
     e.preventDefault();
 
-    const payload = form.file
-      ? { ...form, files: { attachment: form.file } }
-      : form;
-
     try {
-      await createTask(payload);
+      await createTask(form);
       setForm({
         title: '',
         description: '',
         status: 'PENDING',
         assignee_id: '',
-        due_date: form.due_date || null,
+        due_date: '',
         file: null,
       });
 
-      
       if (onCreated) onCreated();
       else navigate('/');  
     } catch (err) {
@@ -90,6 +85,22 @@ export default function TaskForm({ onCreated }) {
         value={form.due_date}
         onChange={(e) => setForm((f) => ({ ...f, due_date: e.target.value }))}
       />
+
+      <label>Attachment (Optional)</label>
+      <input
+        type="file"
+        onChange={(e) => setForm((f) => ({ ...f, file: e.target.files[0] }))}
+        style={{
+          padding: '8px',
+          border: '1px solid #ccc',
+          borderRadius: '4px',
+        }}
+      />
+      {form.file && (
+        <small style={{ color: '#666' }}>
+          Selected: {form.file.name}
+        </small>
+      )}
 
       <button
         type="submit"

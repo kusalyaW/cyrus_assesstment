@@ -1,6 +1,16 @@
 import React from 'react';
 
 export default function TaskTable({ tasks = [], showActions = false, onEdit, onDelete }) {
+  const API = import.meta.env.VITE_API_BASE || 'http://localhost:3000/api';
+  const token = localStorage.getItem('token');
+
+  const downloadAttachment = (attachmentId) => {
+    window.open(
+      `${API}/tasks/attachments/${attachmentId}/download?token=${token}`,
+      '_blank'
+    );
+  };
+
   return (
     <table
       style={{
@@ -17,6 +27,7 @@ export default function TaskTable({ tasks = [], showActions = false, onEdit, onD
           <th style={{ padding: 8, border: '1px solid #ccc' }}>Assignee</th>
           <th style={{ padding: 8, border: '1px solid #ccc' }}>Creator</th>
           <th style={{ padding: 8, border: '1px solid #ccc' }}>Due Date</th>
+          <th style={{ padding: 8, border: '1px solid #ccc' }}>Attachments</th>
           {showActions && <th style={{ padding: 8, border: '1px solid #ccc' }}>Actions</th>}
         </tr>
       </thead>
@@ -29,6 +40,23 @@ export default function TaskTable({ tasks = [], showActions = false, onEdit, onD
             <td style={{ padding: 8, border: '1px solid #ccc' }}>{t.creator_name || '—'}</td>
             <td style={{ padding: 8, border: '1px solid #ccc' }}>
               {t.due_date ? new Date(t.due_date).toLocaleDateString() : '—'}
+            </td>
+            <td style={{ padding: 8, border: '1px solid #ccc', textAlign: 'center' }}>
+              {t.attachment_count > 0 ? (
+                <span
+                  style={{
+                    background: '#3498db',
+                    color: 'white',
+                    padding: '2px 8px',
+                    borderRadius: '12px',
+                    fontSize: '12px',
+                  }}
+                >
+                  📎 {t.attachment_count}
+                </span>
+              ) : (
+                '—'
+              )}
             </td>
             {showActions && (
               <td style={{ padding: 8, border: '1px solid #ccc' }}>
