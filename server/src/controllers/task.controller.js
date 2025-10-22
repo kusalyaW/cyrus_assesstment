@@ -3,15 +3,32 @@ import { pool } from '../db.js';
 export async function createTask(req, res, next) {
   try {
     const { title, description, status, assignee_id, due_date } = req.body;
+    
+    // If no assignee is specified, assign to the creator by default
+    const finalAssigneeId = assignee_id || req.user.id;
+    
+    // Create the task
     const [result] = await pool.query(
       `INSERT INTO tasks (title, description, status, assignee_id, due_date, created_by)
        VALUES (?, ?, ?, ?, ?, ?)`,
-      [title, description || null, status || 'PENDING', req.user.id || null, due_date || null, req.user.id]
+      [title, description || null, status || 'PENDING', finalAssigneeId, due_date || null, req.user.id]
     );
-    const [task] = await pool.query('SELECT * FROM tasks WHERE id=?', [result.insertId]);
+    
+    const taskId = result.insertId;
+    
+    // If file was uploaded, save attachment metadata
+    if (req.file) {
+      await pool.query(
+        `INSERT INTO attachments (task_id, filename, mimetype, size_bytes) VALUES (?, ?, ?, ?)`,
+        [taskId, req.file.filename, req.file.mimetype, req.file.size]
+      );
+    }
+    
+    const [task] = await pool.query('SELECT * FROM tasks WHERE id=?', [taskId]);
     res.status(201).json(task[0]);
-  } catch (e) { next(e); }
-  console.log('Incoming task body:', req.body);
+  } catch (e) { 
+    next(e); 
+  }
 }
 
 export async function listTasks(req, res, next) {
@@ -34,7 +51,8 @@ export async function listTasks(req, res, next) {
 
     const [countRows] = await pool.query(`SELECT COUNT(*) as total FROM tasks ${whereSql}`, values);
     const [rows] = await pool.query(
-      `SELECT t.*, u.name AS assignee_name, c.name AS creator_name
+      `SELECT t.*, u.name AS assignee_name, c.name AS creator_name,
+       (SELECT COUNT(*) FROM attachments WHERE task_id = t.id) as attachment_count
        FROM tasks t LEFT JOIN users u ON t.assignee_id=u.id
        LEFT JOIN users c ON t.created_by=c.id
        ${whereSql} ORDER BY t.created_at DESC LIMIT ? OFFSET ?`,
@@ -105,6 +123,15 @@ export async function getTask(req, res, next) {
     }
     const [rows] = await pool.query(query, params);
     if (rows.length === 0) return res.status(404).json({ message: 'Task not found or not access' });
-    res.json(rows[0]);
+    
+    // Fetch attachments for this task
+    const [attachments] = await pool.query(
+      'SELECT id, filename, mimetype, size_bytes, created_at FROM attachments WHERE task_id=?',
+      [req.params.id]
+    );
+    
+    const task = rows[0];
+    task.attachments = attachments;
+    res.json(task);
   } catch (e) { next(e); } 
 }
