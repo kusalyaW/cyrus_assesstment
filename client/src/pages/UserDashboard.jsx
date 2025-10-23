@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Container, Row, Col, Button, Form, InputGroup, Badge, Pagination } from 'react-bootstrap';
+import { FiSearch, FiPlus, FiBarChart2, FiEyeOff } from 'react-icons/fi';
 import StatCards from '../components/StatCards';
 import TaskTable from '../components/TaskTable';
 import TaskCharts from '../components/TaskCharts';
@@ -57,111 +59,74 @@ export default function UserDashboard() {
 
   useEffect(() => { loadTasks(); }, [page, debouncedSearch, statusFilter]);
 
-  if (loading) return <p>Loading your tasks...</p>;
-
-  return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>My Tasks</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
-            onClick={() => setShowCharts(!showCharts)}
-            style={{
-              background: showCharts ? '#95a5a6' : '#9b59b6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              padding: '8px 14px',
-              cursor: 'pointer',
-            }}
-          >
-            {showCharts ? '📊 Hide Charts' : '📊 Show Charts'}
-          </button>
-          <button
-            onClick={() => navigate('/dashboard/new')}
-            style={{
-              background: '#2ecc71',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              padding: '8px 14px',
-              cursor: 'pointer',
-            }}
-          >
-            + New Task
-          </button>
+  if (loading) {
+    return (
+      <div className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+        <div className="spinner-border text-primary" role="status">
+          <span className="visually-hidden">Loading...</span>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <>
+      <Row className="mb-3 mb-md-4 align-items-center">
+        <Col xs={12} md>
+          <h2 className="mb-2 mb-md-0">My Tasks</h2>
+        </Col>
+        <Col xs={12} md="auto" className="d-flex flex-wrap gap-2">
+          <Button
+            variant={showCharts ? 'secondary' : 'primary'}
+            size="sm"
+            onClick={() => setShowCharts(!showCharts)}
+            className="flex-grow-1 flex-md-grow-0"
+          >
+            {showCharts ? <FiEyeOff className="me-1" /> : <FiBarChart2 className="me-1" />}
+            {showCharts ? 'Hide' : 'Show'} Analytics
+          </Button>
+          <Button variant="success" size="sm" onClick={() => navigate('/dashboard/new')} className="flex-grow-1 flex-md-grow-0">
+            <FiPlus className="me-1" />
+            New Task
+          </Button>
+        </Col>
+      </Row>
 
       <StatCards tasks={tasks} />
 
-      {/* Charts Section */}
       {showCharts && <TaskCharts tasks={tasks} />}
 
-      {/* Search and Filter Controls */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '12px',
-          marginTop: '20px',
-          marginBottom: '15px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search tasks..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            flex: '1',
-            minWidth: '200px',
-            padding: '8px 12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '14px',
-          }}
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1); // Reset to first page on filter
-          }}
-          style={{
-            padding: '8px 12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '14px',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-        {(searchQuery || statusFilter) && (
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              setStatusFilter('');
-              setPage(1);
-            }}
-            style={{
-              padding: '8px 12px',
-              background: '#e74c3c',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
+      <Row className="mb-3 g-2">
+        <Col xs={12} md={8}>
+          <InputGroup>
+            <InputGroup.Text><FiSearch /></InputGroup.Text>
+            <Form.Control
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
+        </Col>
+        <Col xs={12} md={3}>
+          <Form.Select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           >
-            Clear Filters
-          </button>
-        )}
-      </div>
+            <option value="">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+          </Form.Select>
+        </Col>
+        <Col xs={12} md={1}>
+          {(searchQuery || statusFilter) && (
+            <Button variant="outline-danger" size="sm" className="w-100" onClick={() => { setSearchQuery(''); setStatusFilter(''); setPage(1); }}>
+              Clear
+            </Button>
+          )}
+        </Col>
+      </Row>
 
       <TaskTable
         tasks={tasks}
@@ -170,57 +135,25 @@ export default function UserDashboard() {
         onDelete={handleDeleteTask}
       />
 
-      {/* Pagination Controls */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '20px',
-          padding: '10px',
-          background: '#f8f9fa',
-          borderRadius: '4px',
-        }}
-      >
-        <div style={{ fontSize: '14px', color: '#666' }}>
-          Showing {tasks.length} of {meta.total} tasks
+      {meta.total > 0 && (
+        <div className="d-flex justify-content-between align-items-center mt-3">
+          <div className="text-muted small">
+            Showing {tasks.length} of {meta.total} tasks
+          </div>
+          <Pagination size="sm" className="mb-0">
+            <Pagination.Prev 
+              onClick={() => setPage((p) => Math.max(1, p - 1))}
+              disabled={page === 1}
+            />
+            <Pagination.Item active>{page}</Pagination.Item>
+            <Pagination.Item disabled>of {Math.ceil(meta.total / meta.pageSize) || 1}</Pagination.Item>
+            <Pagination.Next
+              onClick={() => setPage((p) => p + 1)}
+              disabled={page >= Math.ceil(meta.total / meta.pageSize)}
+            />
+          </Pagination>
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
-            onClick={() => setPage((p) => Math.max(1, p - 1))}
-            disabled={page === 1}
-            style={{
-              padding: '6px 12px',
-              background: page === 1 ? '#ccc' : '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: page === 1 ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            Previous
-          </button>
-          <span style={{ padding: '6px 12px', fontSize: '14px' }}>
-            Page {page} of {Math.ceil(meta.total / meta.pageSize) || 1}
-          </span>
-          <button
-            onClick={() => setPage((p) => p + 1)}
-            disabled={page >= Math.ceil(meta.total / meta.pageSize)}
-            style={{
-              padding: '6px 12px',
-              background: page >= Math.ceil(meta.total / meta.pageSize) ? '#ccc' : '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: page >= Math.ceil(meta.total / meta.pageSize) ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            Next
-          </button>
-        </div>
-      </div>
-    </div>
+      )}
+    </>
   );
 }

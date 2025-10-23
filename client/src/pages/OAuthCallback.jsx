@@ -31,8 +31,10 @@ export default function OAuthCallback() {
 
   return (
     <div className="center">
-      <h2>Completing authentication...</h2>
-      <p>Please wait while we log you in.</p>
+      <div className="card">
+        <h2 style={{ marginTop: 0 }}>Completing authentication...</h2>
+        <p className="muted">Please wait while we log you in.</p>
+      </div>
     </div>
   );
 }
