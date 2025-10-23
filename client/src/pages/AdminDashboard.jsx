@@ -3,6 +3,8 @@ import { useNavigate } from 'react-router-dom';
 import StatCards from '../components/StatCards';
 import TaskCharts from '../components/TaskCharts';
 import { fetchTasks, updateTask, api } from '../api/client';
+import { Container, Row, Col, Button, Form, InputGroup, Table, Badge, Pagination, Spinner } from 'react-bootstrap';
+import { FiSearch, FiUsers, FiBarChart2, FiEyeOff } from 'react-icons/fi';
 
 export default function AdminDashboard() {
   const [tasks, setTasks] = useState([]);
@@ -48,7 +50,9 @@ export default function AdminDashboard() {
   async function loadUsers() {
     try {
       const data = await api('/users');
-      setUsers(data.data || []);
+      const all = data.data || [];
+      // Exclude admins from assignee options
+      setUsers(all.filter(u => (u.role || '').toUpperCase() !== 'ADMIN'));
     } catch (err) {
       console.error('Failed to fetch users:', err);
     }
@@ -72,147 +76,108 @@ export default function AdminDashboard() {
     loadTasks();
   }, [page, debouncedSearch, statusFilter]);
 
-  if (loading) return <p>Loading tasks...</p>;
+  if (loading) {
+    return (
+      <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: '50vh' }}>
+        <Spinner animation="border" variant="primary" />
+      </Container>
+    );
+  }
 
   return (
-    <div style={{ padding: '20px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <h2>Admin Dashboard</h2>
-        <div style={{ display: 'flex', gap: '10px' }}>
-          <button
+    <Container fluid className="py-4">
+      <Row className="align-items-center mb-3 mb-md-4">
+        <Col xs={12} md>
+          <h2 className="mb-2 mb-md-0">Admin Dashboard</h2>
+        </Col>
+        <Col xs={12} md="auto" className="d-flex flex-wrap gap-2">
+          <Button
+            variant={showCharts ? 'outline-secondary' : 'primary'}
             onClick={() => setShowCharts(!showCharts)}
-            style={{
-              background: showCharts ? '#95a5a6' : '#9b59b6',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              padding: '8px 12px',
-              cursor: 'pointer',
-            }}
+            size="sm"
+            className="flex-grow-1 flex-md-grow-0"
           >
-            {showCharts ? '📊 Hide Charts' : '📊 Show Charts'}
-          </button>
-          <button
-            onClick={() => navigate('/admin/users')}
-            style={{
-              background: '#2ecc71',
-              color: 'white',
-              border: 'none',
-              borderRadius: '5px',
-              padding: '8px 12px',
-              cursor: 'pointer',
-            }}
-          >
+            <FiBarChart2 className="me-1" />
+            {showCharts ? 'Hide Charts' : 'Show Charts'}
+          </Button>
+          <Button variant="success" onClick={() => navigate('/admin/users')} size="sm" className="flex-grow-1 flex-md-grow-0">
+            <FiUsers className="me-1" />
             Manage Users
-          </button>
-        </div>
-      </div>
+          </Button>
+        </Col>
+      </Row>
 
       <StatCards tasks={tasks} />
 
-      {/* Charts Section */}
       {showCharts && <TaskCharts tasks={tasks} />}
 
-      {/* Search and Filter Controls */}
-      <div
-        style={{
-          display: 'flex',
-          gap: '12px',
-          marginTop: '20px',
-          marginBottom: '15px',
-          flexWrap: 'wrap',
-        }}
-      >
-        <input
-          type="text"
-          placeholder="Search tasks..."
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          style={{
-            flex: '1',
-            minWidth: '200px',
-            padding: '8px 12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '14px',
-          }}
-        />
-        <select
-          value={statusFilter}
-          onChange={(e) => {
-            setStatusFilter(e.target.value);
-            setPage(1); // Reset to first page on filter
-          }}
-          style={{
-            padding: '8px 12px',
-            border: '1px solid #ccc',
-            borderRadius: '4px',
-            fontSize: '14px',
-            cursor: 'pointer',
-          }}
-        >
-          <option value="">All Status</option>
-          <option value="PENDING">Pending</option>
-          <option value="IN_PROGRESS">In Progress</option>
-          <option value="COMPLETED">Completed</option>
-        </select>
-        {(searchQuery || statusFilter) && (
-          <button
-            onClick={() => {
-              setSearchQuery('');
-              setStatusFilter('');
-              setPage(1);
-            }}
-            style={{
-              padding: '8px 12px',
-              background: '#e74c3c',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: 'pointer',
-              fontSize: '14px',
-            }}
+      <Row className="mb-3 g-2">
+        <Col xs={12} md={8}>
+          <InputGroup>
+            <InputGroup.Text>
+              <FiSearch />
+            </InputGroup.Text>
+            <Form.Control
+              type="text"
+              placeholder="Search tasks..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </InputGroup>
+        </Col>
+        <Col xs={12} md={3}>
+          <Form.Select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
           >
-            Clear Filters
-          </button>
+            <option value="">All Status</option>
+            <option value="PENDING">Pending</option>
+            <option value="IN_PROGRESS">In Progress</option>
+            <option value="COMPLETED">Completed</option>
+          </Form.Select>
+        </Col>
+        {(searchQuery || statusFilter) && (
+          <Col xs={12} md={1}>
+            <Button
+              variant="outline-danger"
+              className="w-100"
+              onClick={() => { setSearchQuery(''); setStatusFilter(''); setPage(1); }}
+            >
+              Clear
+            </Button>
+          </Col>
         )}
-      </div>
+      </Row>
 
-      {/* Admin Task Table with Reassign Dropdown */}
-      <table
-        style={{
-          width: '100%',
-          borderCollapse: 'collapse',
-          marginTop: '15px',
-          border: '1px solid #ccc',
-        }}
-      >
-        <thead style={{ background: '#f0f0f0' }}>
+      <Table hover responsive className="align-middle">
+        <thead>
           <tr>
-            <th style={{ padding: 8, border: '1px solid #ccc' }}>Title</th>
-            <th style={{ padding: 8, border: '1px solid #ccc' }}>Status</th>
-            <th style={{ padding: 8, border: '1px solid #ccc' }}>Assigned To</th>
-            <th style={{ padding: 8, border: '1px solid #ccc' }}>Creator</th>
-            <th style={{ padding: 8, border: '1px solid #ccc' }}>Due Date</th>
-            <th style={{ padding: 8, border: '1px solid #ccc' }}>Attachments</th>
+            <th>Title</th>
+            <th>Status</th>
+            <th>Assigned To</th>
+            <th>Creator</th>
+            <th>Due Date</th>
+            <th className="text-center">Attachments</th>
           </tr>
         </thead>
         <tbody>
           {tasks.map((task) => (
             <tr key={task.id}>
-              <td style={{ padding: 8, border: '1px solid #ccc' }}>{task.title}</td>
-              <td style={{ padding: 8, border: '1px solid #ccc' }}>{task.status}</td>
-              <td style={{ padding: 8, border: '1px solid #ccc' }}>
-                <select
+              <td>{task.title}</td>
+              <td>
+                <Badge bg={
+                  task.status === 'COMPLETED' ? 'success' :
+                  task.status === 'IN_PROGRESS' ? 'info' : 'warning'
+                }>
+                  {task.status === 'COMPLETED' ? 'Completed' :
+                   task.status === 'IN_PROGRESS' ? 'In Progress' : 'Pending'}
+                </Badge>
+              </td>
+              <td>
+                <Form.Select
                   value={task.assignee_id || ''}
                   onChange={(e) => handleReassign(task.id, e.target.value)}
-                  style={{
-                    padding: '4px 8px',
-                    borderRadius: '3px',
-                    border: '1px solid #ccc',
-                    cursor: 'pointer',
-                    width: '100%',
-                  }}
+                  size="sm"
                 >
                   <option value="">Unassigned</option>
                   {users.map((user) => (
@@ -220,25 +185,15 @@ export default function AdminDashboard() {
                       {user.name}
                     </option>
                   ))}
-                </select>
+                </Form.Select>
               </td>
-              <td style={{ padding: 8, border: '1px solid #ccc' }}>{task.creator_name || '—'}</td>
-              <td style={{ padding: 8, border: '1px solid #ccc' }}>
+              <td>{task.creator_name || '—'}</td>
+              <td>
                 {task.due_date ? new Date(task.due_date).toLocaleDateString() : '—'}
               </td>
-              <td style={{ padding: 8, border: '1px solid #ccc', textAlign: 'center' }}>
+              <td className="text-center">
                 {task.attachment_count > 0 ? (
-                  <span
-                    style={{
-                      background: '#3498db',
-                      color: 'white',
-                      padding: '2px 8px',
-                      borderRadius: '12px',
-                      fontSize: '12px',
-                    }}
-                  >
-                    📎 {task.attachment_count}
-                  </span>
+                  <Badge bg="secondary">📎 {task.attachment_count}</Badge>
                 ) : (
                   '—'
                 )}
@@ -246,59 +201,24 @@ export default function AdminDashboard() {
             </tr>
           ))}
         </tbody>
-      </table>
+      </Table>
 
-      {/* Pagination Controls */}
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginTop: '20px',
-          padding: '10px',
-          background: '#f8f9fa',
-          borderRadius: '4px',
-        }}
-      >
-        <div style={{ fontSize: '14px', color: '#666' }}>
+      <div className="d-flex justify-content-between align-items-center">
+        <div className="text-muted">
           Showing {tasks.length} of {meta.total} tasks
         </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <button
+        <Pagination className="mb-0">
+          <Pagination.Prev
             onClick={() => setPage((p) => Math.max(1, p - 1))}
             disabled={page === 1}
-            style={{
-              padding: '6px 12px',
-              background: page === 1 ? '#ccc' : '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: page === 1 ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            Previous
-          </button>
-          <span style={{ padding: '6px 12px', fontSize: '14px' }}>
-            Page {page} of {Math.ceil(meta.total / meta.pageSize) || 1}
-          </span>
-          <button
+          />
+          <Pagination.Item active>{page}</Pagination.Item>
+          <Pagination.Next
             onClick={() => setPage((p) => p + 1)}
             disabled={page >= Math.ceil(meta.total / meta.pageSize)}
-            style={{
-              padding: '6px 12px',
-              background: page >= Math.ceil(meta.total / meta.pageSize) ? '#ccc' : '#3498db',
-              color: 'white',
-              border: 'none',
-              borderRadius: '4px',
-              cursor: page >= Math.ceil(meta.total / meta.pageSize) ? 'not-allowed' : 'pointer',
-              fontSize: '14px',
-            }}
-          >
-            Next
-          </button>
-        </div>
+          />
+        </Pagination>
       </div>
-    </div>
+    </Container>
   );
 }

@@ -1,247 +1,130 @@
 import React from 'react';
-import {
-  PieChart,
-  Pie,
-  Cell,
-  BarChart,
-  Bar,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Tooltip,
-  Legend,
-  ResponsiveContainer,
-  LineChart,
-  Line,
-} from 'recharts';
+import { Row, Col, Card } from 'react-bootstrap';
+import { FiPieChart, FiBarChart2 } from 'react-icons/fi';
+import { PieChart, Pie, Cell, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
 export default function TaskCharts({ tasks }) {
-  // Status distribution data
   const statusData = [
-    {
-      name: 'Pending',
-      value: tasks.filter((t) => t.status === 'PENDING').length,
-      color: '#f39c12',
-    },
-    {
-      name: 'In Progress',
-      value: tasks.filter((t) => t.status === 'IN_PROGRESS').length,
-      color: '#3498db',
-    },
-    {
-      name: 'Completed',
-      value: tasks.filter((t) => t.status === 'COMPLETED').length,
-      color: '#27ae60',
-    },
-  ];
+    { name: 'Pending', value: tasks.filter(t => t.status === 'PENDING').length, color: '#f59e0b' },
+    { name: 'In Progress', value: tasks.filter(t => t.status === 'IN_PROGRESS').length, color: '#0ea5e9' },
+    { name: 'Completed', value: tasks.filter(t => t.status === 'COMPLETED').length, color: '#22c55e' },
+  ].filter(d => d.value > 0);
 
-  // Tasks by assignee
-  const assigneeMap = {};
-  tasks.forEach((task) => {
-    const assignee = task.assignee_name || 'Unassigned';
-    assigneeMap[assignee] = (assigneeMap[assignee] || 0) + 1;
-  });
-  const assigneeData = Object.entries(assigneeMap).map(([name, count]) => ({
-    name,
-    tasks: count,
-  }));
-
-  // Tasks by creator
-  const creatorMap = {};
-  tasks.forEach((task) => {
-    const creator = task.creator_name || 'Unknown';
-    creatorMap[creator] = (creatorMap[creator] || 0) + 1;
-  });
-  const creatorData = Object.entries(creatorMap).map(([name, count]) => ({
-    name,
-    tasks: count,
-  }));
-
-  // Tasks with attachments
+  const withAttachments = tasks.filter(t => t.attachment_count > 0).length;
+  const withoutAttachments = tasks.length - withAttachments;
   const attachmentData = [
-    {
-      name: 'With Attachments',
-      value: tasks.filter((t) => t.attachment_count > 0).length,
-      color: '#9b59b6',
-    },
-    {
-      name: 'Without Attachments',
-      value: tasks.filter((t) => !t.attachment_count || t.attachment_count === 0).length,
-      color: '#95a5a6',
-    },
-  ];
+    { name: 'With Attachments', value: withAttachments, color: '#8b5cf6' },
+    { name: 'No Attachments', value: withoutAttachments, color: '#6b7280' },
+  ].filter(d => d.value > 0);
 
-  // Custom label for pie chart
-  const renderCustomLabel = ({ cx, cy, midAngle, innerRadius, outerRadius, percent }) => {
-    const radius = innerRadius + (outerRadius - innerRadius) * 0.5;
-    const x = cx + radius * Math.cos(-midAngle * (Math.PI / 180));
-    const y = cy + radius * Math.sin(-midAngle * (Math.PI / 180));
+  const byAssignee = {};
+  tasks.forEach(t => {
+    const key = t.assignee_name || 'Unassigned';
+    byAssignee[key] = (byAssignee[key] || 0) + 1;
+  });
+  const assigneeData = Object.entries(byAssignee).map(([name, count]) => ({ name, count }));
 
-    return (
-      <text
-        x={x}
-        y={y}
-        fill="white"
-        textAnchor={x > cx ? 'start' : 'end'}
-        dominantBaseline="central"
-        style={{ fontWeight: 'bold', fontSize: '14px' }}
-      >
-        {`${(percent * 100).toFixed(0)}%`}
-      </text>
-    );
-  };
+  const byCreator = {};
+  tasks.forEach(t => {
+    const key = t.creator_name || 'Unknown';
+    byCreator[key] = (byCreator[key] || 0) + 1;
+  });
+  const creatorData = Object.entries(byCreator).map(([name, count]) => ({ name, count }));
+
+  const ChartCard = ({ title, icon: Icon, children }) => (
+    <Card className="h-100 border-0">
+      <Card.Body>
+        <div className="d-flex align-items-center mb-3">
+          <Icon size={20} className="text-primary me-2" />
+          <Card.Title className="mb-0 h6">{title}</Card.Title>
+        </div>
+        {children}
+      </Card.Body>
+    </Card>
+  );
 
   return (
-    <div style={{ marginTop: '30px' }}>
-      <h3 style={{ marginBottom: '20px', color: '#2c3e50' }}>📊 Task Analytics</h3>
+    <div className="my-4">
+      <h5 className="mb-3 d-flex align-items-center">
+        <FiBarChart2 className="me-2 text-primary" />
+        Task Analytics
+      </h5>
+      
+      <Row className="g-3 mb-3">
+        <Col xs={12} md={6}>
+          <ChartCard title="Status Distribution" icon={FiPieChart}>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie 
+                  data={statusData} 
+                  cx="50%" 
+                  cy="50%" 
+                  labelLine={false} 
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} 
+                  outerRadius={80} 
+                  fill="#8884d8" 
+                  dataKey="value"
+                >
+                  {statusData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                </Pie>
+                <Tooltip contentStyle={{ background: '#0c1427', border: '1px solid #1f2937', borderRadius: '8px', color: '#e5e7eb' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </Col>
 
-      <div
-        style={{
-          display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
-          gap: '20px',
-          marginBottom: '20px',
-        }}
-      >
-        {/* Status Distribution Pie Chart */}
-        <div
-          style={{
-            background: 'white',
-            padding: '20px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
-          <h4 style={{ marginBottom: '15px', color: '#34495e' }}>Task Status Distribution</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={statusData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomLabel}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {statusData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
+        <Col xs={12} md={6}>
+          <ChartCard title="Attachments" icon={FiPieChart}>
+            <ResponsiveContainer width="100%" height={250}>
+              <PieChart>
+                <Pie 
+                  data={attachmentData} 
+                  cx="50%" 
+                  cy="50%" 
+                  labelLine={false} 
+                  label={({ name, percent }) => `${name}: ${(percent * 100).toFixed(0)}%`} 
+                  outerRadius={80} 
+                  fill="#8884d8" 
+                  dataKey="value"
+                >
+                  {attachmentData.map((entry, index) => (<Cell key={`cell-${index}`} fill={entry.color} />))}
+                </Pie>
+                <Tooltip contentStyle={{ background: '#0c1427', border: '1px solid #1f2937', borderRadius: '8px', color: '#e5e7eb' }} />
+              </PieChart>
+            </ResponsiveContainer>
+          </ChartCard>
+        </Col>
+      </Row>
 
-        {/* Attachment Distribution Pie Chart */}
-        <div
-          style={{
-            background: 'white',
-            padding: '20px',
-            borderRadius: '8px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          }}
-        >
-          <h4 style={{ marginBottom: '15px', color: '#34495e' }}>Tasks with Attachments</h4>
-          <ResponsiveContainer width="100%" height={250}>
-            <PieChart>
-              <Pie
-                data={attachmentData}
-                cx="50%"
-                cy="50%"
-                labelLine={false}
-                label={renderCustomLabel}
-                outerRadius={80}
-                fill="#8884d8"
-                dataKey="value"
-              >
-                {attachmentData.map((entry, index) => (
-                  <Cell key={`cell-${index}`} fill={entry.color} />
-                ))}
-              </Pie>
-              <Tooltip />
-              <Legend />
-            </PieChart>
-          </ResponsiveContainer>
-        </div>
-
-        {/* Tasks by Assignee Bar Chart */}
-        {assigneeData.length > 0 && (
-          <div
-            style={{
-              background: 'white',
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            <h4 style={{ marginBottom: '15px', color: '#34495e' }}>Tasks by Assignee</h4>
+      <Row className="g-3">
+        <Col xs={12} md={6}>
+          <ChartCard title="Tasks by Assignee" icon={FiBarChart2}>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={assigneeData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="tasks" fill="#3498db" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                <Tooltip contentStyle={{ background: '#0c1427', border: '1px solid #1f2937', borderRadius: '8px' }} labelStyle={{ color: '#e5e7eb' }} />
+                <Bar dataKey="count" fill="#4f46e5" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        )}
+          </ChartCard>
+        </Col>
 
-        {/* Tasks by Creator Bar Chart */}
-        {creatorData.length > 0 && (
-          <div
-            style={{
-              background: 'white',
-              padding: '20px',
-              borderRadius: '8px',
-              boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-            }}
-          >
-            <h4 style={{ marginBottom: '15px', color: '#34495e' }}>Tasks by Creator</h4>
+        <Col xs={12} md={6}>
+          <ChartCard title="Tasks by Creator" icon={FiBarChart2}>
             <ResponsiveContainer width="100%" height={250}>
               <BarChart data={creatorData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" angle={-45} textAnchor="end" height={80} />
-                <YAxis />
-                <Tooltip />
-                <Legend />
-                <Bar dataKey="tasks" fill="#27ae60" />
+                <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
+                <XAxis dataKey="name" stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                <YAxis stroke="#94a3b8" tick={{ fill: '#94a3b8' }} />
+                <Tooltip contentStyle={{ background: '#0c1427', border: '1px solid #1f2937', borderRadius: '8px' }} labelStyle={{ color: '#e5e7eb' }} />
+                <Bar dataKey="count" fill="#0ea5e9" radius={[8, 8, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
-          </div>
-        )}
-      </div>
-
-      {/* Status Summary Bar Chart */}
-      <div
-        style={{
-          background: 'white',
-          padding: '20px',
-          borderRadius: '8px',
-          boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-          marginBottom: '20px',
-        }}
-      >
-        <h4 style={{ marginBottom: '15px', color: '#34495e' }}>Status Overview</h4>
-        <ResponsiveContainer width="100%" height={200}>
-          <BarChart data={statusData} layout="vertical">
-            <CartesianGrid strokeDasharray="3 3" />
-            <XAxis type="number" />
-            <YAxis type="category" dataKey="name" width={100} />
-            <Tooltip />
-            <Legend />
-            <Bar dataKey="value" fill="#8884d8">
-              {statusData.map((entry, index) => (
-                <Cell key={`cell-${index}`} fill={entry.color} />
-              ))}
-            </Bar>
-          </BarChart>
-        </ResponsiveContainer>
-      </div>
+          </ChartCard>
+        </Col>
+      </Row>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
+import { Container, Table, Button, Badge, Row, Col } from 'react-bootstrap';
 
 export default function UserListPage() {
   const [users, setUsers] = useState([]);
@@ -11,7 +12,6 @@ export default function UserListPage() {
       const data = await api('/users');
       console.log('Fetched users:', data);
       setUsers(data.data || []);
-      
     } catch (err) {
       console.error('Failed to load users:', err);
     }
@@ -26,12 +26,24 @@ export default function UserListPage() {
   useEffect(() => { loadUsers(); }, []);
 
   return (
-    <div style={{ padding: '20px' }}>
-      <h2>User Management</h2>
-      <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+    <Container className="py-4">
+      <Row className="align-items-center mb-3">
+        <Col>
+          <h2 className="mb-0">Users</h2>
+        </Col>
+        <Col xs="auto">
+          <Button variant="outline-secondary" onClick={() => navigate(-1)}>Back</Button>
+        </Col>
+      </Row>
+
+      <Table hover responsive className="align-middle">
         <thead>
-          <tr style={{ background: '#f0f0f0' }}>
-            <th>ID</th><th>Name</th><th>Email</th><th>Role</th><th>Actions</th>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Email</th>
+            <th>Role</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -40,25 +52,25 @@ export default function UserListPage() {
               <td>{u.id}</td>
               <td>{u.name}</td>
               <td>{u.email}</td>
-              <td>{u.role}</td>
               <td>
-                <button
-                  onClick={() => navigate(`/admin/users/edit/${u.id}`)}
-                  style={{ background: '#3498db', color: 'white', border: 'none', borderRadius: '3px', padding: '5px 10px', marginRight: '5px' }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => handleDelete(u.id)}
-                  style={{ background: '#e74c3c', color: 'white', border: 'none', borderRadius: '3px', padding: '5px 10px' }}
-                >
-                  Delete
-                </button>
+                <Badge bg={u.role === 'ADMIN' ? 'danger' : 'primary'}>{u.role}</Badge>
+              </td>
+              <td>
+                <div className="d-flex gap-2">
+                  <Button size="sm" variant="outline-primary" onClick={() => navigate(`/admin/users/edit/${u.id}`)}>Edit</Button>
+                  <Button size="sm" variant="outline-danger" onClick={() => handleDelete(u.id)}>Delete</Button>
+                </div>
               </td>
             </tr>
           ))}
         </tbody>
-      </table>
-    </div>
+      </Table>
+
+      {users.length === 0 && (
+        <div className="card" style={{ marginTop: '12px' }}>
+          <p className="muted">No users found.</p>
+        </div>
+      )}
+    </Container>
   );
 }

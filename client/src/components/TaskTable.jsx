@@ -1,97 +1,108 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { Table, Badge, Button } from 'react-bootstrap';
+import { FiEdit2, FiTrash2, FiPaperclip, FiCalendar, FiUser } from 'react-icons/fi';
+import AttachmentsModal from './AttachmentsModal';
 
 export default function TaskTable({ tasks = [], showActions = false, onEdit, onDelete }) {
-  const API = import.meta.env.VITE_API_BASE || 'http://localhost:3000/api';
-  const token = localStorage.getItem('token');
+  const [showAttachments, setShowAttachments] = useState(false);
+  const [selectedTaskId, setSelectedTaskId] = useState(null);
 
-  const downloadAttachment = (attachmentId) => {
-    window.open(
-      `${API}/tasks/attachments/${attachmentId}/download?token=${token}`,
-      '_blank'
-    );
+  const getStatusBadge = (status) => {
+    const variants = {
+      'PENDING': 'warning',
+      'IN_PROGRESS': 'info',
+      'COMPLETED': 'success'
+    };
+    const labels = {
+      'PENDING': 'Pending',
+      'IN_PROGRESS': 'In Progress',
+      'COMPLETED': 'Completed'
+    };
+    return <Badge bg={variants[status]} className="px-2 py-1">{labels[status]}</Badge>;
   };
 
+  if (tasks.length === 0) {
+    return (
+      <div className="empty-state">
+        <div className="empty-state-icon">📋</div>
+        <h5 className="text-muted">No tasks found</h5>
+        <p className="text-muted small">Create a new task to get started</p>
+      </div>
+    );
+  }
+
   return (
-    <table
-      style={{
-        width: '100%',
-        borderCollapse: 'collapse',
-        marginTop: '15px',
-        border: '1px solid #ccc',
-      }}
-    >
-      <thead style={{ background: '#f0f0f0' }}>
+    <>
+    <Table hover responsive className="align-middle">
+      <thead>
         <tr>
-          <th style={{ padding: 8, border: '1px solid #ccc' }}>Title</th>
-          <th style={{ padding: 8, border: '1px solid #ccc' }}>Status</th>
-          <th style={{ padding: 8, border: '1px solid #ccc' }}>Assignee</th>
-          <th style={{ padding: 8, border: '1px solid #ccc' }}>Creator</th>
-          <th style={{ padding: 8, border: '1px solid #ccc' }}>Due Date</th>
-          <th style={{ padding: 8, border: '1px solid #ccc' }}>Attachments</th>
-          {showActions && <th style={{ padding: 8, border: '1px solid #ccc' }}>Actions</th>}
+          <th>Title</th>
+          <th>Status</th>
+          <th><FiUser className="me-1" />Assignee</th>
+          <th><FiUser className="me-1" />Creator</th>
+          <th><FiCalendar className="me-1" />Due Date</th>
+          <th className="text-center"><FiPaperclip className="me-1" />Attachments</th>
+          {showActions && <th>Actions</th>}
         </tr>
       </thead>
       <tbody>
         {tasks.map((t) => (
           <tr key={t.id}>
-            <td style={{ padding: 8, border: '1px solid #ccc' }}>{t.title}</td>
-            <td style={{ padding: 8, border: '1px solid #ccc' }}>{t.status}</td>
-            <td style={{ padding: 8, border: '1px solid #ccc' }}>{t.assignee_name || '—'}</td>
-            <td style={{ padding: 8, border: '1px solid #ccc' }}>{t.creator_name || '—'}</td>
-            <td style={{ padding: 8, border: '1px solid #ccc' }}>
-              {t.due_date ? new Date(t.due_date).toLocaleDateString() : '—'}
+            <td className="fw-semibold">{t.title}</td>
+            <td>{getStatusBadge(t.status)}</td>
+            <td>{t.assignee_name || <span className="text-muted">Unassigned</span>}</td>
+            <td>{t.creator_name || '—'}</td>
+            <td>
+              {t.due_date ? new Date(t.due_date).toLocaleDateString() : <span className="text-muted">—</span>}
             </td>
-            <td style={{ padding: 8, border: '1px solid #ccc', textAlign: 'center' }}>
+            <td className="text-center">
               {t.attachment_count > 0 ? (
-                <span
-                  style={{
-                    background: '#3498db',
-                    color: 'white',
-                    padding: '2px 8px',
-                    borderRadius: '12px',
-                    fontSize: '12px',
-                  }}
-                >
-                  📎 {t.attachment_count}
-                </span>
+                <div className="d-flex justify-content-center align-items-center gap-2">
+                  <Badge bg="secondary" className="px-2">
+                    <FiPaperclip size={14} className="me-1" />
+                    {t.attachment_count}
+                  </Badge>
+                  <Button
+                    size="sm"
+                    variant="outline-secondary"
+                    onClick={() => { setSelectedTaskId(t.id); setShowAttachments(true); }}
+                  >
+                    View
+                  </Button>
+                </div>
               ) : (
-                '—'
+                <span className="text-muted">—</span>
               )}
             </td>
             {showActions && (
-              <td style={{ padding: 8, border: '1px solid #ccc' }}>
-                <button
-                  onClick={() => onEdit && onEdit(t)}
-                  style={{
-                    background: '#3498db',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    padding: '4px 8px',
-                    marginRight: '5px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Edit
-                </button>
-                <button
-                  onClick={() => onDelete && onDelete(t.id)}
-                  style={{
-                    background: '#e74c3c',
-                    color: 'white',
-                    border: 'none',
-                    borderRadius: '3px',
-                    padding: '4px 8px',
-                    cursor: 'pointer',
-                  }}
-                >
-                  Delete
-                </button>
+              <td>
+                <div className="d-flex gap-2">
+                  <Button 
+                    size="sm" 
+                    variant="outline-primary" 
+                    onClick={() => onEdit && onEdit(t)}
+                  >
+                    <FiEdit2 size={14} />
+                  </Button>
+                  <Button 
+                    size="sm" 
+                    variant="outline-danger" 
+                    onClick={() => onDelete && onDelete(t.id)}
+                  >
+                    <FiTrash2 size={14} />
+                  </Button>
+                </div>
               </td>
             )}
           </tr>
         ))}
       </tbody>
-    </table>
+    </Table>
+    <AttachmentsModal
+      show={showAttachments}
+      onHide={() => setShowAttachments(false)}
+      taskId={selectedTaskId}
+    />
+    </>
   );
 }
